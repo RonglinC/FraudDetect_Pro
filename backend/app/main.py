@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .db import Base, engine
 from .routers.score import router as score_router
 from .logging import get_logger
+from .routes_auth_poc import router as auth_poc_router
 
 logger = get_logger(__name__)
 
@@ -22,6 +23,7 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 app.include_router(score_router)
+app.include_router(auth_poc_router)
 
 @app.get("/healthz")
 def health():

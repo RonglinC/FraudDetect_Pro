@@ -80,3 +80,26 @@ class ScoreResponse(BaseModel):
     cached: bool = Field(
         description="Whether this response was served from cache"
     )
+
+# --- Minimal auth PoC schemas ---
+class RegisterRequest(BaseModel):
+    email: str
+    phone: Optional[str] = None
+    password: str
+    home_country: Optional[str] = None
+
+class RegisterResponse(BaseModel):
+    user_id: str
+    email: str
+
+class LoginRequest(BaseModel):
+    email_or_user_id: str
+    password: str
+    geo_country: Optional[str] = None
+
+class LoginResponse(BaseModel):
+    user_id: str
+    success: bool
+
+class AlgorithmsResponse(BaseModel):
+    algorithms: List[str]

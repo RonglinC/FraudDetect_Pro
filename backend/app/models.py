@@ -18,6 +18,16 @@ class LoginEvent(Base):
     additional_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(32), unique=True, index=True, nullable=False)
+    email = Column(String(256), unique=True, index=True, nullable=False)
+    phone = Column(String(32), nullable=True)
+    password_hash = Column(String(256), nullable=False)
+    home_country = Column(String(8), nullable=True)
+    registered_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class ScoreDecision(Base):
     __tablename__ = "score_decisions"
     id = Column(Integer, primary_key=True, index=True)
