@@ -1,14 +1,17 @@
-backend/.venv/bin/uvicorn app.main:app --reload --port 8000 --app-dir backend
-INFO:     Will watch for changes in these directories: ['/Users/ronglinchen/FraudDetect_Pro']
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [61893] using WatchFiles
-INFO:     Started server process [61903]
+INFO:     Started server process [80650]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-{"timestamp": "2025-10-28T00:18:27.605850", "level": "INFO", "event": "health_check"}
-INFO:     127.0.0.1:54792 - "GET /healthz HTTP/1.1" 200 OK
-{"timestamp": "2025-10-28T00:18:38.488733", "level": "INFO", "event": "score_request_received", "event_id": "test123", "user_id_hash": "user456", "auth_method": "password"}
-{"timestamp": "2025-10-28T00:18:38.491145", "level": "INFO", "event": "score_prediction", "event_id": "test123", "score": 0.18, "model_version": "mock-0.1"}
-{"timestamp": "2025-10-28T00:18:38.491185", "level": "INFO", "event": "score_decision", "event_id": "test123", "decision": "allow", "reasons": ["score_below_allow_threshold"]}
-INFO:     127.0.0.1:54798 - "POST /score HTTP/1.1" 200 OK
-make: *** [run] Hangup: 1
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55735 - "GET /algorithms HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55740 - "POST /register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:55745 - "POST /register HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:55752 - "POST /login HTTP/1.1" 200 OK
+{"timestamp": "2025-10-28T01:16:47.361046", "level": "INFO", "event": "score_request_received", "event_id": "t1", "user_id_hash": "u1", "auth_method": null}
+{"timestamp": "2025-10-28T01:16:47.361977", "level": "INFO", "event": "score_cache_hit", "event_id": "t1", "score": 0.54, "decision": "challenge"}
+INFO:     127.0.0.1:55761 - "POST /score HTTP/1.1" 200 OK
+{"timestamp": "2025-10-28T01:26:03.324407", "level": "INFO", "event": "health_check"}
+INFO:     127.0.0.1:56013 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [80650]
