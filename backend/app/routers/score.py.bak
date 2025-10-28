@@ -27,6 +27,9 @@ def _enrich(req: ScoreRequest) -> dict:
         "new_device": new_device,
     }
 
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+
 @router.post("", response_model=ScoreResponse)
 def score(req: ScoreRequest, db: Session = Depends(get_db)):
     try:
@@ -35,9 +38,7 @@ def score(req: ScoreRequest, db: Session = Depends(get_db)):
                    user_id_hash=req.user_id,
                    auth_method=req.auth_method)
         
-        # Check for existing decision
         existing = db.query(ScoreDecision).filter(ScoreDecision.event_id == req.event_id).first()
-        if existing:
             logger.info("score_cache_hit",
                        event_id=existing.event_id,
                        score=existing.score,
@@ -50,53 +51,45 @@ def score(req: ScoreRequest, db: Session = Depends(get_db)):
                 explain=Explain(feature_contributions=(existing.explain or {}).get("feature_contributions")),
                 model_version=existing.model_version,
                 cached=True
-            )
+            )    ev = LoginEvent(
+        event_id=req.event_id,
+        user_id_hash=req.user_id,
+        ip=req.ip,
+        country=(req.geo.country if req.geo else None),
+        region=(req.geo.region if req.geo else None),
+        user_agent=(req.device.userAgent if req.device else None),
+        device_id=(req.device.deviceId if req.device else None),
+        fingerprint_hash=(req.device.fingerprintHash if req.device else None),
+        auth_method=req.auth_method,
+        previous_failed_logins=req.previous_failed_logins,
+        additional_metadata=req.additional_metadata,
+    )
+    db.add(ev)
 
-        # Record login event
-        ev = LoginEvent(
-            event_id=req.event_id,
-            user_id_hash=req.user_id,
-            ip=req.ip,
-            country=(req.geo.country if req.geo else None),
-            region=(req.geo.region if req.geo else None),
-            user_agent=(req.device.userAgent if req.device else None),
-            device_id=(req.device.deviceId if req.device else None),
-            fingerprint_hash=(req.device.fingerprintHash if req.device else None),
-            auth_method=req.auth_method,
-            previous_failed_logins=req.previous_failed_logins,
-            additional_metadata=req.additional_metadata,
-        )
-        db.add(ev)
-        
-        # Generate prediction
-        features = _enrich(req)
-        score_val, contribs = predict(features)
-        logger.info("score_prediction", 
-                   event_id=req.event_id,
-                   score=score_val,
-                   model_version=settings.model_version)
-        
-        # Apply policy
-        decision, reasons = apply_policy(score_val)
-        logger.info("score_decision",
-                   event_id=req.event_id,
-                   decision=decision,
-                   reasons=reasons)
+    features = _enrich(req)
+    score_val, contribs = predict(features)
+    logger.info("score_prediction", 
+                event_id=req.event_id,
+                score=score_val,
+                model_version=settings.model_version)
+                
+    decision, reasons = apply_policy(score_val)
+    logger.info("score_decision",
+                event_id=req.event_id,
+                decision=decision,
+                reasons=reasons)
 
-        # Record decision
-        record = ScoreDecision(
-            event_id=req.event_id,
-            score=score_val,
-            decision=decision,
-            reasons=reasons,
-            explain={"feature_contributions": contribs},
-            model_version=settings.model_version,
-            cached=False
-        )
-        
-        # Handle potential race conditions with duplicate event_ids
+    record = ScoreDecision(
+        event_id=req.event_id,
+        score=score_val,
+        decision=decision,
+        reasons=reasons,
+        explain={"feature_contributions": contribs},
+        model_version=settings.model_version,
+        cached=False
+    )
+        db.add(record)
         try:
-            db.add(record)
             db.commit()
         except IntegrityError:
             db.rollback()
@@ -111,13 +104,10 @@ def score(req: ScoreRequest, db: Session = Depends(get_db)):
                     reasons=existing.reasons or [],
                     explain=Explain(feature_contributions=(existing.explain or {}).get("feature_contributions")),
                     model_version=existing.model_version,
-                    cached=True
+                    cached=True,
                 )
             else:
-                raise HTTPException(
-                    status_code=500,
-                    detail="Duplicate event_id error but record not found"
-                )
+                raise HTTPException(status_code=500, detail="Duplicate event_id error but record not found")
 
         return ScoreResponse(
             event_id=req.event_id,
@@ -128,7 +118,6 @@ def score(req: ScoreRequest, db: Session = Depends(get_db)):
             model_version=settings.model_version,
             cached=False
         )
-        
     except Exception as e:
         logger.error("score_error", 
                     event_id=req.event_id,
