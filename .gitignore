@@ -1,0 +1,7 @@
+# Ignore Python cache and venv
+__pycache__/
+*.pyc
+backend/.venv/
+
+# Ignore large dataset
+backend/data/creditcard.csv
