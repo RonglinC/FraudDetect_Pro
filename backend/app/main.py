@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import Base, engine
 from .routers.score import router as score_router
+from .logging import get_logger
+
+logger = get_logger(__name__)
 
 
 
@@ -22,4 +25,5 @@ app.include_router(score_router)
 
 @app.get("/healthz")
 def health():
+    logger.info("health_check")
     return {"status": "ok"}
