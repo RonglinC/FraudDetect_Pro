@@ -4,10 +4,13 @@ import bcrypt
 from fastapi import APIRouter
 from typing import List
 
+from pathlib import Path
 # import your pydantic schemas (adjust import path if necessary)
 from app.schemas import LoginRequest, LoginResponse, AlgorithmsResponse
 
-DB_FILE = "users.db"
+# Resolve users.db relative to the repository structure:
+# this file lives at backend/app/routes_auth_poc.py and the DB is at backend/users.db
+DB_FILE = str(Path(__file__).resolve().parents[1] / "users.db")
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 

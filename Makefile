@@ -43,6 +43,51 @@ score-ann:
 metrics:
 		curl -X GET http://127.0.0.1:8000/metrics
 
+# --- ML Model Training & Management ---
+train-ann:
+		curl -X POST http://127.0.0.1:8000/train/ann
+
+train-svm:
+		curl -X POST http://127.0.0.1:8000/train/svm
+
+train-knn:
+		curl -X POST http://127.0.0.1:8000/train/knn
+
+train-all:
+		@echo "Training all models..."
+		curl -X POST http://127.0.0.1:8000/train/ann
+		curl -X POST http://127.0.0.1:8000/train/svm
+		curl -X POST http://127.0.0.1:8000/train/knn
+
+select-ann:
+		curl -X POST http://127.0.0.1:8000/select/ann
+
+select-svm:
+		curl -X POST http://127.0.0.1:8000/select/svm
+
+select-knn:
+		curl -X POST http://127.0.0.1:8000/select/knn
+
+list-algorithms:
+		curl -X GET http://127.0.0.1:8000/algorithms
+
+# Score with specific algorithm
+score-with-svm:
+		curl -X POST "http://127.0.0.1:8000/score?algorithm=svm" \
+			-H "Content-Type: application/json" \
+			-d '{"Time":0,"Amount":1.0,"V1":0.1,"V2":0.2,"V3":0.3,"V4":0.4,"V5":0.5,"V6":0.6,"V7":0.7,"V8":0.8,"V9":0.9,"V10":1.0,"V11":1.1,"V12":1.2,"V13":1.3,"V14":1.4,"V15":1.5,"V16":1.6,"V17":1.7,"V18":1.8,"V19":1.9,"V20":2.0,"V21":2.1,"V22":2.2,"V23":2.3,"V24":2.4,"V25":2.5,"V26":2.6,"V27":2.7,"V28":2.8}'
+
+score-with-knn:
+		curl -X POST "http://127.0.0.1:8000/score?algorithm=knn" \
+			-H "Content-Type: application/json" \
+			-d '{"Time":0,"Amount":1.0,"V1":0.1,"V2":0.2,"V3":0.3,"V4":0.4,"V5":0.5,"V6":0.6,"V7":0.7,"V8":0.8,"V9":0.9,"V10":1.0,"V11":1.1,"V12":1.2,"V13":1.3,"V14":1.4,"V15":1.5,"V16":1.6,"V17":1.7,"V18":1.8,"V19":1.9,"V20":2.0,"V21":2.1,"V22":2.2,"V23":2.3,"V24":2.4,"V25":2.5,"V26":2.6,"V27":2.7,"V28":2.8}'
+
+metrics-svm:
+		curl -X GET "http://127.0.0.1:8000/metrics?algorithm=svm"
+
+metrics-knn:
+		curl -X GET "http://127.0.0.1:8000/metrics?algorithm=knn"
+
 clean:
 	rm -rf $(VENV) $(BACKEND)/fraud.db
 
