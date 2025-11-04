@@ -5,3 +5,6 @@ backend/.venv/
 
 # Ignore large dataset
 backend/data/creditcard.csv
+
+__pycache__/
+*.pyc

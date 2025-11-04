@@ -1,11 +1,12 @@
 import hashlib
 import secrets
+from typing import Optional
 
 def make_salt() -> str:
     """Return a hex salt string."""
     return secrets.token_hex(8)
 
-def hash_password(pw: str, salt: str | None = None) -> str:
+def hash_password(pw: str, salt: Optional[str] = None) -> str:
     """
     Return stored password format: salt$hexhash
     Uses salt + password bytes hashed with sha256.
