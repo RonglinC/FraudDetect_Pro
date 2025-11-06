@@ -1,12 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import requests
 import os
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = "secret"
 
 FASTAPI_URL = "http://127.0.0.1:8000"
 LOGIN_ENDPOINT = f"{FASTAPI_URL}/auth/login"
+
+DB_FILE = "users.db"
+
+def get_db():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row  # so we can access columns by name
+    return conn 
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -27,6 +35,7 @@ def login():
                 data = resp.json()
                 if data.get("success") and data.get("user_id"):
                     session["user"] = data.get("user_id")
+                    session["user_id"] = data.get("id")
                     return redirect(url_for("homepage"))
                 else:
                     return render_template("login.html", error="Invalid credentials")
@@ -37,18 +46,31 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/homepage")
 def homepage():
-    if "username" not in session:
+    # Check that the user is logged in
+    if "user" not in session:
         return redirect(url_for("login"))
-    username = session["username"]
 
-    res = requests.get(f"{FASTAPI_URL}/transactions/{username}")
-    if res.status_code == 200:
-        transactions = res.json()["transactions"]
-    else:
-        transactions = []
-    return render_template("homepage.html", username=username, transactions=transactions)
+    user_id = session["user_id"]  # user_id stored during login
+    transactions = []
+
+    # Call FastAPI endpoint using user_id
+    try:
+        # Endpoint expects numeric user_id
+        res = requests.get(f"{FASTAPI_URL}/transactions/{user_id}", timeout=5)
+        res.raise_for_status()
+        data = res.json()
+        transactions = data.get("transactions", [])
+    except requests.exceptions.RequestException as e:
+        print(f"[ERROR] Could not fetch transactions: {e}")
+
+    return render_template("homepage.html", user=user_id, transactions=transactions)
+
+
+
+
 
 @app.route("/detect_fraud")
 def detect_fraud():
