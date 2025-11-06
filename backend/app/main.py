@@ -34,7 +34,7 @@ def train_models_on_startup():
     ml_models.train_algorithm("ann", force_retrain=False)
 
 
-DB_PATH = "data/transactions.db"  # Adjust if your DB file lives elsewhere
+DB_PATH = "users.db"  # Adjust if your DB file lives elsewhere
 
 
 @app.post("/login_user")
@@ -68,6 +68,29 @@ def get_transactions(user_id: int):
     data = [dict(zip(columns, row)) for row in cur.fetchall()]
     conn.close()
     return {"transactions": data}
+
+@app.get("/transactions/by_username/{username}")
+def get_transactions_by_username(username: str):
+    """Fetch transactions for a given username."""
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    
+    # Find user ID
+    cur.execute("SELECT id FROM users WHERE username=?", (username,))
+    user = cur.fetchone()
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user[0]
+
+    # Fetch transactions for that user
+    cur.execute("SELECT * FROM transactions WHERE user_id=?", (user_id,))
+    columns = [desc[0] for desc in cur.description]
+    data = [dict(zip(columns, row)) for row in cur.fetchall()]
+    conn.close()
+
+    return {"transactions": data}
+
 
 
 @app.post("/detect_fraud/{user_id}")
