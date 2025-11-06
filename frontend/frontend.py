@@ -53,16 +53,16 @@ def homepage():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    user_id = session["user_id"]  # user_id stored during login
+    user_id = session["user"]  # Get the user from session
     transactions = []
 
-    # Call FastAPI endpoint using user_id
+    # Call the chatbot API to get transaction history
     try:
-        # Endpoint expects numeric user_id
-        res = requests.get(f"{FASTAPI_URL}/transactions/{user_id}", timeout=5)
-        res.raise_for_status()
-        data = res.json()
-        transactions = data.get("transactions", [])
+        res = requests.get(f"{FASTAPI_URL}/chatbot/user/{user_id}/transactions?limit=10", timeout=5)
+        if res.status_code == 200:
+            transactions = res.json()
+        else:
+            print(f"[ERROR] Could not fetch transactions: {res.status_code}")
     except requests.exceptions.RequestException as e:
         print(f"[ERROR] Could not fetch transactions: {e}")
 
