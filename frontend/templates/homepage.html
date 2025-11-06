@@ -33,8 +33,7 @@
       <h1 class="text-primary mb-3">Welcome, {{ user }}</h1>
       <p>This is your FraudDetectorPro homepage.</p>
       <div class="d-flex justify-content-center mt-4">
-        <a href="{{ url_for('chatbot') }}" class="btn btn-primary me-3">Chatbot</a>
-        <a href="{{ url_for('detect_fraud') }}" class="btn btn-success">Run Fraud Detection</a>
+        <a href="{{ url_for('chatbot_page') }}" class="btn btn-primary me-3">Chatbot</a>
       </div>
     </div>
 
@@ -51,7 +50,6 @@
                 <th>Amount</th>
                 <th>Merchant</th>
                 <th>Location</th>
-                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -62,7 +60,6 @@
                 <td>${{ txn[2] }}</td>
                 <td>{{ txn[3] }}</td>
                 <td>{{ txn[4] }}</td>
-                <td>{{ txn[5] }}</td>
               </tr>
               {% endfor %}
             </tbody>

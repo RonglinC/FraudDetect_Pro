@@ -230,8 +230,15 @@ class FraudDetectionChatbot:
         
         return transaction
 
-    def call_ml_api(self, endpoint: str, data: Dict = None, algorithm: str = None) -> Dict:
+    def call_ml_api(self, endpoint: str, method: str = "get", data: Dict = None, algorithm: str = None) -> Dict:
+        """
+        Unified API caller — works with local ML model or FastAPI backend.
+        """
+
         try:
+            # -------------------------
+            # 1️⃣ LOCAL MODE (direct ml_models access)
+            # -------------------------
             if endpoint == "/algorithms":
                 available = ml_models.get_available_algorithms()
                 return {
@@ -239,6 +246,7 @@ class FraudDetectionChatbot:
                     "available": available,
                     "active": ml_models._active_algorithm
                 }
+
             elif endpoint.startswith("/select/"):
                 algo = endpoint.split("/")[-1]
                 success = ml_models.set_active_algorithm(algo)
@@ -250,23 +258,22 @@ class FraudDetectionChatbot:
                     }
                 else:
                     return {"error": f"Failed to activate {algo}"}
+
             elif endpoint == "/score":
                 if not data:
                     return {"error": "No transaction data provided"}
                 try:
                     result = ml_models.predict_fraud(data, algorithm)
                     score = result["score"]
-                    
-                    # Apply realistic fraud detection thresholds
-                    # Most fraud systems use much lower thresholds
-                    if score < 0.01:  # Less than 1%
+
+                    # realistic fraud detection thresholds
+                    if score < 0.01:
                         decision = "allow"
-                    elif score < 0.05:  # 1-5%
+                    elif score < 0.05:
                         decision = "challenge"
-                    else:  # Above 5%
+                    else:
                         decision = "block"
-                        decision = "block"
-                    
+
                     return {
                         "score": score,
                         "decision": decision,
@@ -276,12 +283,31 @@ class FraudDetectionChatbot:
                     }
                 except Exception as e:
                     return {"error": f"Scoring failed: {str(e)}"}
+
             elif endpoint == "/metrics":
                 return ml_models.get_metrics(algorithm)
+
+            # -------------------------
+            # 2️⃣ REMOTE MODE (via FastAPI)
+            # -------------------------
             else:
-                return {"error": f"Unknown endpoint: {endpoint}"}
+                import requests
+                base_url = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
+                url = f"{base_url}{endpoint}"
+
+                if method.lower() == "post":
+                    resp = requests.post(url, json=data or {}, timeout=10)
+                else:
+                    resp = requests.get(url, params=data or {}, timeout=10)
+
+                if resp.status_code == 200:
+                    return resp.json()
+                else:
+                    return {"error": f"HTTP {resp.status_code}: {resp.text}"}
+
         except Exception as e:
             return {"error": f"ML operation failed: {str(e)}"}
+
 
     def process_message(self, user_id: str, message: str) -> str:
         message = message.strip()
@@ -422,7 +448,7 @@ What would you like to do?"""
     def _handle_algorithm_selection(self, user_session: Dict, algorithm: str) -> str:
         try:
             # Set algorithm directly
-            result = self.call_ml_api(f"/select/{algorithm}")
+            result = self.call_ml_api(f"/select/{algorithm}", method="post")
             if "error" in result:
                 return f"Error selecting {algorithm.upper()}: {result['error']}"
             
