@@ -2,13 +2,64 @@
 
 ## Backend API Endpoints (Port 8000)
 
+### Enhanced Chatbot API
+
+#### Intelligent Conversation
+```bash
+# Main chatbot interaction with user data integration
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Hello", "user_id": "alice"}'
+# Response: Personalized greeting with account summary
+
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Show my account info", "user_id": "alice"}'
+# Response: Comprehensive account information with stats
+
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "My transactions", "user_id": "alice"}'
+# Response: Recent transaction history with fraud indicators
+
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Check transaction for $500 at Amazon", "user_id": "alice"}'
+# Response: ML-powered fraud analysis with decision
+
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Use SVM algorithm", "user_id": "alice"}'
+# Response: Algorithm switched with performance metrics
+```
+
+#### User Data API
+```bash
+# Get comprehensive user information
+curl -X GET http://127.0.0.1:8000/chatbot/user/alice/info
+
+# Get user transaction history with filters
+curl -X GET "http://127.0.0.1:8000/chatbot/user/alice/transactions?limit=10&include_fraud=true&min_amount=100"
+# Response: [{"id":121,"txn_time":"2025-11-04T20:53:00","amount":455.88,...}]
+
+# Get detailed fraud analysis for user
+curl -X GET http://127.0.0.1:8000/chatbot/user/alice/fraud-summary
+# Response: {"user":{...},"statistics":{...},"recent_fraud_cases":[],
+
+# Get system-wide analytics
+curl -X GET http://127.0.0.1:8000/chatbot/analytics/users-overview
+# Response: {"system_overview":{...},"users":[...]}
+
+# Session management
+curl -X GET http://127.0.0.1:8000/chatbot/session/alice
+curl -X DELETE http://127.0.0.1:8000/chatbot/session/alice
+```
+
 ### Authentication
 ```bash
-# Login
 curl -X POST http://127.0.0.1:8000/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email_or_user_id":"alice","password":"Passw0rd!"}'
-
 # Response: {"user_id":"alice","success":true}
 
 # List algorithms (legacy endpoint on auth router)
@@ -113,30 +164,74 @@ open http://127.0.0.1:5050/
 # Homepage (after login)
 open http://127.0.0.1:5050/homepage
 
-# Chatbot (after login)
 open http://127.0.0.1:5050/chatbot
 
 # Logout
 open http://127.0.0.1:5050/logout
 ```
 
-### Frontend API (used by JavaScript in browser)
 ```bash
-# Chatbot API (requires authenticated session)
 curl -X POST http://127.0.0.1:5050/chatbot_api \
   -H 'Content-Type: application/json' \
   -H 'Cookie: session=YOUR_SESSION_COOKIE' \
-  -d '{"message":"Hello"}'
-# Response: {"response":"Echo: Hello"}
+  -d '{"message": "Hello"}'
+# Response: Intelligent response with user data integration
+
+# Example chatbot conversations:
+# "Hello" → Personalized greeting with account summary
+# "Show my account info" → Comprehensive user profile
+# "My transactions" → Recent transaction history
+# "Check transaction for $500 at Amazon" → ML fraud analysis
 ```
 
-**Note:** The chatbot currently echoes messages. This will be enhanced to call backend ML endpoints.
+---
+
+## Chatbot Conversation Examples
+
+### 1. Personalized User Experience
+```bash
+# User greeting with account integration
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello", "user_id": "alice"}'
+
+
+### 2. Account Information
+```bash
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Show my account info", "user_id": "alice"}'
+
+```
+
+### 3. Transaction History
+```bash
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "My transactions", "user_id": "alice"}'
+
+```
+
+### 4. Real-Time Fraud Detection
+```bash
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Check transaction for $500 at Amazon", "user_id": "alice"}'
+
+```
+
+### 5. Algorithm Management
+```bash
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Use SVM algorithm", "user_id": "alice"}'
+
+```
 
 ---
 
 ## Commands to Run the System
 
-### 1. Start Backend (Terminal 1)
 ```bash
 cd /Users/ronglinchen/FraudDetect_Pro
 make run
@@ -163,88 +258,63 @@ cd backend
 cd ..
 ```
 
+---
 
-## Quick Test Workflow
 
-### Step 1: Verify Backend Health
 ```bash
 curl http://127.0.0.1:8000/healthz
 # Expected: {"status":"ok"}
+
+# Test user data integration
+curl -X GET "http://127.0.0.1:8000/chatbot/user/alice/info"
+# Expected: User profile with transaction stats
 ```
 
-### Step 2: Verify Frontend is Up
 ```bash
-curl -I http://127.0.0.1:5050/
-# Expected: HTTP/1.1 200 OK
+# Personalized greeting
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello", "user_id": "alice"}'
+
+# Account information
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Show my account info", "user_id": "alice"}'
+
+# Transaction history
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "My transactions", "user_id": "alice"}'
+
+# Fraud detection
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Check transaction for $500 at Amazon", "user_id": "alice"}'
+
+# Algorithm switching
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Use SVM algorithm", "user_id": "alice"}'
 ```
 
-### Step 3: Test Login via API
 ```bash
-curl -X POST http://127.0.0.1:8000/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email_or_user_id":"alice","password":"Passw0rd!"}'
-# Expected: {"user_id":"alice","success":true}
-```
+# Test user with fraud cases
+curl -X GET "http://127.0.0.1:8000/chatbot/user/eve/fraud-summary"
+# Shows fraud statistics and patterns
 
-### Step 4: Check Available Algorithms
-```bash
-curl http://127.0.0.1:8000/algorithms
-# Expected: {"algorithms":["ann","svm","knn"],"available":["ann","svm"],"active":"ann"}
-```
-
-### Step 5: Get ANN Metrics
-```bash
-curl http://127.0.0.1:8000/metrics
-# Expected: Full metrics JSON with accuracy, precision, recall, etc.
-```
-
-### Step 6: Score a Transaction
-```bash
-curl -X POST http://127.0.0.1:8000/score \
-  -H 'Content-Type: application/json' \
-  -d '{"Time":10000,"V1":0,"V2":0,"V3":0,"V4":0,"V5":0,"V6":0,"V7":0,"V8":0,"V9":0,"V10":0,"V11":0,"V12":0,"V13":0,"V14":0,"V15":0,"V16":0,"V17":0,"V18":0,"V19":0,"V20":0,"V21":0,"V22":0,"V23":0,"V24":0,"V25":0,"V26":0,"V27":0,"V28":0,"Amount":123.45}'
-# Expected: {"score":0.0011,"decision":"allow","algorithm":"ann","confidence":0.9989,"model_version":"v1.0"}
-```
-
-### Step 7: Train and Switch to SVM
-```bash
-# Train SVM
-curl -X POST http://127.0.0.1:8000/train/svm
-# Expected: {"status":"success","algorithm":"svm","metrics":{...}}
-
-# Select SVM as active
-curl -X POST http://127.0.0.1:8000/select/svm
-# Expected: {"status":"success","active_algorithm":"svm","message":"SVM is now the active algorithm"}
-
-# Score with SVM
-curl -X POST http://127.0.0.1:8000/score \
-  -H 'Content-Type: application/json' \
-  -d '{"Time":10000,"V1":0,"V2":0,"V3":0,"V4":0,"V5":0,"V6":0,"V7":0,"V8":0,"V9":0,"V10":0,"V11":0,"V12":0,"V13":0,"V14":0,"V15":0,"V16":0,"V17":0,"V18":0,"V19":0,"V20":0,"V21":0,"V22":0,"V23":0,"V24":0,"V25":0,"V26":0,"V27":0,"V28":0,"Amount":123.45}'
+curl -X POST "http://127.0.0.1:8000/chatbot/message" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello", "user_id": "eve"}'
+# Will show fraud cases in account summary
 ```
 
 ---
 
-## Frontend Usage
-
-**What Frontend Currently Uses:**
-- `POST /auth/login` - user authentication
-- Chatbot currently echoes messages (placeholder)
-
-**What Frontend Will Use (for chatbot integration):**
-- `GET /algorithms` - show algorithm choices to user
-- `POST /select/{algorithm}` - when user picks algorithm via chat
-- `POST /score` - check transactions through conversation
-- `GET /metrics` - display model performance stats
-
----
-
-## Makefile Commands
 
 ```bash
 # Install dependencies
 make install
 
-# Run backend server
 make run
 
 # Health check
@@ -277,8 +347,8 @@ make metrics-knn
 make eda
 ```
 
+---
 
-## Troubleshooting
 
 ### Backend won't start
 ```bash
@@ -308,5 +378,12 @@ curl -X POST http://127.0.0.1:8000/train/ann
 cd backend
 ../backend/.venv/bin/python create_user_db.py
 cd ..
+```
+
+### Chatbot not responding intelligently
+```bash
+# Check user exists in database
+curl -X GET "http://127.0.0.1:8000/chatbot/user/alice/info"
+# Should return user profile, not 404
 ```
 

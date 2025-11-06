@@ -93,11 +93,26 @@ def chatbot_api():
 
     data = request.get_json()
     message = data.get("message", "")
+    user_id = session["user"]
     
-    # Here you can call your AI or logic
-    bot_response = f"Echo: {message}"  # placeholder logic
-
-    return jsonify({"response": bot_response})
+    # Call backend chatbot API
+    try:
+        chatbot_payload = {"message": message, "user_id": user_id}
+        backend_url = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
+        
+        resp = requests.post(f"{backend_url}/chatbot/message", 
+                           json=chatbot_payload, timeout=10)
+        
+        if resp.status_code == 200:
+            result = resp.json()
+            return jsonify({"response": result.get("response", "No response")})
+        else:
+            return jsonify({"response": f"Backend error: {resp.status_code}"})
+            
+    except requests.RequestException as e:
+        return jsonify({"response": f"Connection error: {str(e)}"})
+    except Exception as e:
+        return jsonify({"response": f"Error: {str(e)}"})
 
 
 

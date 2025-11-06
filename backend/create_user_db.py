@@ -5,13 +5,10 @@ Run: python create_users_db.py
 """
 
 import sqlite3
-from faker import Faker
-import bcrypt
 import random
 from datetime import datetime, timedelta
 import uuid
-
-fake = Faker()
+import hashlib
 DB_FILE = "users.db"
 
 NUM_USERS = 8
@@ -46,9 +43,8 @@ def create_schema(conn):
     conn.commit()
 
 def hash_password(plain: str) -> str:
-    # bcrypt hash
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(plain.encode("utf-8"), salt).decode("utf-8")
+    # Simple hash for demo (use bcrypt in production)
+    return hashlib.sha256(plain.encode("utf-8")).hexdigest()
 
 def random_card_mask():
     # generate masked card like "XXXX-XXXX-XXXX-1234"
@@ -70,7 +66,7 @@ def seed(conn):
         ("heidi","Heidi2025")
     ]
     for username, pwd in example_creds[:NUM_USERS]:
-        full = fake.name()
+        full = f"{username.title()} Demo User"  # Simple name
         email = f"{username}@example.com"
         created_at = datetime.utcnow().isoformat()
         pwd_hash = hash_password(pwd)
@@ -91,9 +87,9 @@ def seed(conn):
             amount = round(random.uniform(1.5, 1200.0), 2)
             merchant = random.choice(merchants)
             card_mask = random_card_mask()
-            location = f"{fake.city()}, {fake.country()}"
+            location = "San Francisco, CA"  # Simple location
             is_fraud = 1 if (random.random() < 0.02) else 0  # ~2% labeled fraud
-            desc = fake.sentence(nb_words=6)
+            desc = "Transaction processed"  # Simple description
             cur.execute(
                 """INSERT INTO transactions
                 (user_id, txn_time, amount, merchant, card_masked, location, is_fraud, description)

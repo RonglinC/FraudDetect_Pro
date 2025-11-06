@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import sqlite3
 import bcrypt
 import uuid
+import hashlib
 from typing import Optional, List, Dict
 
 ROUTER = APIRouter(prefix="/auth", tags=["auth"])
@@ -47,7 +48,17 @@ def login(req: LoginRequest):
     if not row:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     stored_hash = row["password_hash"]
-    if not bcrypt.checkpw(req.password.encode("utf-8"), stored_hash.encode("utf-8")):
+    # For demo: try both bcrypt and simple hash
+    password_matches = False
+    try:
+        # Try bcrypt first
+        password_matches = bcrypt.checkpw(req.password.encode("utf-8"), stored_hash.encode("utf-8"))
+    except:
+        # Fall back to simple hash for demo
+        simple_hash = hashlib.sha256(req.password.encode("utf-8")).hexdigest()
+        password_matches = (simple_hash == stored_hash)
+    
+    if not password_matches:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     # issue simple token
     token = str(uuid.uuid4())

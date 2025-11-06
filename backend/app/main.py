@@ -7,6 +7,9 @@ import sqlite3
 
 from .routes_auth_poc import router as auth_poc_router
 from . import ml_models
+from .routers.chatbot import router as chatbot_router
+# import other routers if you have them, e.g. score_router = ...
+# from .routers.score import router as score_router
 
 app = FastAPI(title="Login Fraud Scoring POC")
 
@@ -20,6 +23,9 @@ app.add_middleware(
 
 # include routers
 app.include_router(auth_poc_router)
+app.include_router(chatbot_router)
+# app.include_router(score_router)
+# app.include_router(other_router)
 
 # --- ML Model Startup ---
 @app.on_event("startup")
