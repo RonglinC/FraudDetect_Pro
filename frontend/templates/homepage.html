@@ -13,18 +13,62 @@
       min-height: 100vh;
     }
     .welcome-card {
-      margin-top: 100px;
+      margin-top: 50px;
+    }
+    .table-container {
+      margin-top: 40px;
+    }
+    .transactions-table {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
-  <div class="container d-flex justify-content-center">
-    <div class="card shadow-lg p-4 welcome-card" style="width: 500px;">
-      <h1 class="text-center mb-3 text-primary">Welcome, {{ user }}</h1>
-      <p class="text-center">This is your FraudDetectorPro homepage.</p>
+  <div class="container text-center">
+    <!-- Welcome Section -->
+    <div class="card shadow-lg p-4 welcome-card mx-auto" style="max-width: 600px;">
+      <h1 class="text-primary mb-3">Welcome, {{ user }}</h1>
+      <p>This is your FraudDetectorPro homepage.</p>
       <div class="d-flex justify-content-center mt-4">
-        <a href="{{ url_for('chatbot') }}" class="btn btn-primary">Chatbot</a>
+        <a href="{{ url_for('chatbot') }}" class="btn btn-primary me-3">Chatbot</a>
+        <a href="{{ url_for('detect_fraud') }}" class="btn btn-success">Run Fraud Detection</a>
       </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="table-container">
+      <h3 class="text-center text-dark mt-5 mb-3">Transaction History</h3>
+      {% if transactions %}
+        <div class="table-responsive transactions-table">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="table-primary">
+              <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>Old Balance</th>
+                <th>New Balance</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for txn in transactions %}
+              <tr>
+                <td>{{ txn[0] }}</td>
+                <td>${{ txn[1] }}</td>
+                <td>${{ txn[2] }}</td>
+                <td>${{ txn[3] }}</td>
+                <td>{{ txn[4] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mt-3">No transactions found for your account.</p>
+      {% endif %}
     </div>
   </div>
 </body>

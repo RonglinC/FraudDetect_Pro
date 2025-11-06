@@ -1,13 +1,12 @@
-# frontend/frontend.py
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import os
+from flask import Flask, render_template, request, redirect, url_for, session
 import requests
+import os
 
-app = Flask(__name__, template_folder="templates")
-app.secret_key = "secure_bank_ui"
+app = Flask(__name__)
+app.secret_key = "secret"
 
-BACKEND_URL = "http://localhost:8000"
-LOGIN_ENDPOINT = f"{BACKEND_URL}/auth/login"
+FASTAPI_URL = "http://127.0.0.1:8000"
+LOGIN_ENDPOINT = f"{FASTAPI_URL}/auth/login"
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -38,12 +37,26 @@ def login():
 
     return render_template("login.html")
 
-
 @app.route("/homepage")
 def homepage():
-    if "user" not in session:
+    if "username" not in session:
         return redirect(url_for("login"))
-    return render_template("homepage.html", user=session["user"])
+    username = session["username"]
+
+    res = requests.get(f"{FASTAPI_URL}/transactions/{username}")
+    if res.status_code == 200:
+        transactions = res.json()["transactions"]
+    else:
+        transactions = []
+    return render_template("homepage.html", username=username, transactions=transactions)
+
+@app.route("/detect_fraud")
+def detect_fraud():
+    username = session.get("username")
+    res = requests.post(f"{FASTAPI_URL}/predict_fraud/{username}")
+    predictions = res.json().get("predictions", [])
+    return render_template("fraud_results.html", predictions=predictions)
+
 
 @app.route("/chatbot")
 def chatbot():
