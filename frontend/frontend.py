@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import requests
 import os
 import sqlite3
@@ -34,8 +34,10 @@ def login():
             if resp.status_code == 200:
                 data = resp.json()
                 if data.get("success") and data.get("user_id"):
-                    session["user"] = data.get("user_id")
-                    session["user_id"] = data.get("id")
+                    # The routes_auth_poc.py returns username as user_id
+                    username = data.get("user_id")  # This is actually the username
+                    session["user"] = username  # Save username for display
+                    session["user_id"] = username  # Save for API calls (username-based)
                     return redirect(url_for("homepage"))
                 else:
                     return render_template("login.html", error="Invalid credentials")
@@ -53,12 +55,13 @@ def homepage():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    user_id = session["user"]  # Get the user from session
+    user_id = session["user_id"]  # numeric user_id stored during login
+    username = session["user"]    # username for display
     transactions = []
 
-    # Call the chatbot API to get transaction history
+    # Call the dedicated homepage transactions endpoint
     try:
-        res = requests.get(f"{FASTAPI_URL}/chatbot/user/{user_id}/transactions?limit=10", timeout=5)
+        res = requests.get(f"{FASTAPI_URL}/homepage/transactions/{username}?limit=10", timeout=5)
         if res.status_code == 200:
             transactions = res.json()
         else:
@@ -66,7 +69,7 @@ def homepage():
     except requests.exceptions.RequestException as e:
         print(f"[ERROR] Could not fetch transactions: {e}")
 
-    return render_template("homepage.html", user=user_id, transactions=transactions)
+    return render_template("homepage.html", user=username, transactions=transactions)
 
 
 

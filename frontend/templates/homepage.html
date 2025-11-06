@@ -40,48 +40,36 @@
 
     <!-- Transaction History -->
     <div class="table-container">
-      <h3 class="text-center text-dark mt-5 mb-3">Recent Transaction History</h3>
+      <h3 class="text-center text-dark mt-5 mb-3">Transaction History</h3>
       {% if transactions %}
         <div class="table-responsive transactions-table">
           <table class="table table-striped table-hover mb-0">
             <thead class="table-primary">
               <tr>
-                <th>Date/Time</th>
+                <th>ID</th>
+                <th>Time</th>
                 <th>Amount</th>
                 <th>Merchant</th>
                 <th>Location</th>
                 <th>Status</th>
-                <th>Description</th>
               </tr>
             </thead>
             <tbody>
               {% for txn in transactions %}
-              <tr class="{% if txn.is_fraud %}table-danger{% else %}table-light{% endif %}">
-                <td>{{ txn.txn_time[:16].replace('T', ' ') if txn.txn_time else 'N/A' }}</td>
-                <td><strong>${{ "%.2f"|format(txn.amount) }}</strong></td>
-                <td>{{ txn.merchant or 'Unknown' }}</td>
-                <td>{{ txn.location or 'Unknown' }}</td>
-                <td>
-                  {% if txn.is_fraud %}
-                    <span class="badge bg-danger">FRAUD</span>
-                  {% else %}
-                    <span class="badge bg-success">SAFE</span>
-                  {% endif %}
-                </td>
-                <td>{{ txn.description or '-' }}</td>
+              <tr>
+                <td>{{ txn[0] }}</td>
+                <td>{{ txn[1] }}</td>
+                <td>${{ txn[2] }}</td>
+                <td>{{ txn[3] }}</td>
+                <td>{{ txn[4] }}</td>
+                <td>{{ txn[5] }}</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-        <div class="text-center mt-3">
-          <small class="text-muted">Showing last {{ transactions|length }} transactions</small>
-        </div>
       {% else %}
-        <div class="alert alert-info text-center">
-          <h5>No transactions found</h5>
-          <p class="mb-0">No transaction history is available for your account.</p>
-        </div>
+        <p class="text-muted mt-3">No transactions found for your account.</p>
       {% endif %}
     </div>
   </div>
