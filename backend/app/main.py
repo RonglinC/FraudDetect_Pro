@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional
 import sqlite3
+from pathlib import Path
 
 from .routes_auth_poc import router as auth_poc_router
 from . import ml_models
@@ -134,9 +135,56 @@ def detect_fraud(user_id: int):
     return {"user_id": user_id, "results": predictions}
 
 
-# ============================================================
-# Existing Endpoints
-# ============================================================
+
+
+@app.get("/homepage/transactions/{username}")
+def get_homepage_transactions(username: str, limit: int = Query(10, ge=1, le=50)):
+    
+    # Use the same database path as chatbot
+    USERS_DB = str(Path(__file__).resolve().parents[1] / "users.db")
+    
+    try:
+        conn = sqlite3.connect(USERS_DB)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        # Get user ID by username
+        cur.execute("SELECT id FROM users WHERE username = ?", (username,))
+        user_row = cur.fetchone()
+        
+        if not user_row:
+            conn.close()
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get transactions and format as arrays for template
+        cur.execute("""
+            SELECT id, txn_time, amount, merchant, location, is_fraud
+            FROM transactions 
+            WHERE user_id = ?
+            ORDER BY txn_time DESC 
+            LIMIT ?
+        """, (user_row["id"], limit))
+        
+        transactions = []
+        for row in cur.fetchall():
+            # Format as array: [id, time, amount, merchant, location, status]
+            transactions.append([
+                row["id"],                                           # ID
+                row["txn_time"][:16].replace('T', ' '),             # Time (formatted)
+                f"{row['amount']:.2f}",                             # Amount 
+                row["merchant"] or "Unknown",                       # Merchant
+                row["location"] or "Unknown",                       # Location
+                "FRAUD" if row["is_fraud"] else "SAFE"             # Status
+            ])
+        
+        conn.close()
+        return transactions
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+
 
 @app.post("/score")
 async def score(payload: dict, algorithm: Optional[str] = Query(None, description="Algorithm to use: ann, svm, knn")):

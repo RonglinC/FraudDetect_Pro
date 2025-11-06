@@ -1,70 +1,125 @@
-# FraudDetect_Pro API Endpoints & Testing Guide
+# FraudDetect_Pro API Endpoints
 
 ## Backend API Endpoints (Port 8000)
 
-### Enhanced Chatbot API
+### Chatbot API
 
-#### Intelligent Conversation
+#### Core Conversation
 ```bash
-# Main chatbot interaction with user data integration
+# Main chatbot interaction
 curl -X POST http://127.0.0.1:8000/chatbot/message \
   -H 'Content-Type: application/json' \
-  -d '{"message": "Hello", "user_id": "alice"}'
-# Response: Personalized greeting with account summary
+  -d '{"message": "Check transaction for $1170.53 at Starbucks", "user_id": "alice"}'
 
-curl -X POST http://127.0.0.1:8000/chatbot/message \
-  -H 'Content-Type: application/json' \
-  -d '{"message": "Show my account info", "user_id": "alice"}'
-# Response: Comprehensive account information with stats
-
-curl -X POST http://127.0.0.1:8000/chatbot/message \
-  -H 'Content-Type: application/json' \
-  -d '{"message": "My transactions", "user_id": "alice"}'
-# Response: Recent transaction history with fraud indicators
-
-curl -X POST http://127.0.0.1:8000/chatbot/message \
-  -H 'Content-Type: application/json' \
-  -d '{"message": "Check transaction for $500 at Amazon", "user_id": "alice"}'
-# Response: ML-powered fraud analysis with decision
-
+# Algorithm switching
 curl -X POST http://127.0.0.1:8000/chatbot/message \
   -H 'Content-Type: application/json' \
   -d '{"message": "Use SVM algorithm", "user_id": "alice"}'
-# Response: Algorithm switched with performance metrics
+
+# Account information
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Show my account info", "user_id": "alice"}'
 ```
 
-#### User Data API
+#### User Data APIs
 ```bash
-# Get comprehensive user information
+# User information
 curl -X GET http://127.0.0.1:8000/chatbot/user/alice/info
 
-# Get user transaction history with filters
+# Transaction history with filters
 curl -X GET "http://127.0.0.1:8000/chatbot/user/alice/transactions?limit=10&include_fraud=true&min_amount=100"
-# Response: [{"id":121,"txn_time":"2025-11-04T20:53:00","amount":455.88,...}]
 
-# Get detailed fraud analysis for user
-curl -X GET http://127.0.0.1:8000/chatbot/user/alice/fraud-summary
-# Response: {"user":{...},"statistics":{...},"recent_fraud_cases":[],
+# Fraud analysis
+curl -X GET http://127.0.0.1:8000/chatbot/user/heidi/fraud-summary
 
-# Get system-wide analytics
+# System analytics
 curl -X GET http://127.0.0.1:8000/chatbot/analytics/users-overview
-# Response: {"system_overview":{...},"users":[...]}
 
 # Session management
 curl -X GET http://127.0.0.1:8000/chatbot/session/alice
 curl -X DELETE http://127.0.0.1:8000/chatbot/session/alice
 ```
 
+#### Natural Language Patterns
+- "Check transaction for $500 at Amazon"
+- "Is $1200 fraudulent?"
+- "Show my account info"
+- "Use SVM algorithm"
+- "Show my fraud cases"
+
 ### Authentication
 ```bash
 curl -X POST http://127.0.0.1:8000/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email_or_user_id":"alice","password":"Passw0rd!"}'
-# Response: {"user_id":"alice","success":true}
+```
 
-# List algorithms (legacy endpoint on auth router)
-curl http://127.0.0.1:8000/auth/algorithms
-# Response: {"algorithms":["logreg","xgboost"]}
+### Health Check
+```bash
+curl http://127.0.0.1:8000/healthz
+```
+
+### ML Model Management
+```bash
+# List algorithms
+curl http://127.0.0.1:8000/algorithms
+
+# Train models
+curl -X POST http://127.0.0.1:8000/train/ann
+curl -X POST http://127.0.0.1:8000/train/svm
+
+# Select algorithm
+curl -X POST http://127.0.0.1:8000/select/ann
+
+# Get metrics
+curl http://127.0.0.1:8000/metrics
+```
+
+
+**Fraud Detection Thresholds:**
+- score < 0.01 (1%) → LEGITIMATE
+- 0.01 ≤ score < 0.05 (1-5%) → REQUIRES REVIEW  
+- score ≥ 0.05 (5%+) → HIGH RISK
+
+### Homepage Data API
+```bash
+# Transaction data for homepage (6-column format)
+curl -X GET "http://127.0.0.1:8000/homepage/transactions/alice?limit=10"
+```
+
+---
+
+## Frontend Endpoints (Port 5000)
+
+### Direct Access
+```bash
+# Login page
+open http://127.0.0.1:5000/
+
+# Homepage (after login)
+open http://127.0.0.1:5000/homepage
+
+# Chatbot page
+open http://127.0.0.1:5000/chatbot
+```
+
+---
+
+## Test Users
+
+| Username | Password | Notes |
+|----------|----------|-------|
+| alice | Passw0rd! | Clean account |
+| heidi | Heidi2025 | Has fraud cases |
+| bob | Secur3P@ss | Mixed activity |
+
+---
+
+## Fraud Detection Testing
+
+```bash
+
 ```
 
 ### Health Check
@@ -147,14 +202,30 @@ curl -X POST http://127.0.0.1:8000/score \
   }'
 ```
 
-**Decision Thresholds:**
-- `score < 0.25` → **allow**
-- `0.25 ≤ score < 0.60` → **challenge**
-- `score ≥ 0.60` → **block**
+**Enhanced Fraud Detection Thresholds:**
+- `score < 0.01` (1%) → **LEGITIMATE** (allow)
+- `0.01 ≤ score < 0.05` (1-5%) → **REQUIRES REVIEW** (challenge)  
+- `score ≥ 0.05` (5%+) → **HIGH RISK** (block)
+
+**Business Rules Enhancement:**
+- High amounts at coffee shops (>$500 at Starbucks) → 8% risk
+- Unknown merchants → 12% risk
+- High ride costs (Uber >$300) → 4% risk
+- Very high amounts (>$10k) → 6% risk
+- Micro transactions (<$0.10) → 7% risk
+
+### Homepage Data API
+
+```bash
+# Get transaction data for homepage display (6-column format)
+curl -X GET "http://127.0.0.1:8000/homepage/transactions/alice?limit=10"
+# Response: [[223,"2025-10-28 21:03","204.03","Target","Tamarafort, Dominica","SAFE"],[231,"2025-10-26 11:04","970.05","Amazon","East Deniseside, Monaco","SAFE"]]
+# Format: [ID, Time, Amount, Merchant, Location, Status]
+```
 
 ---
 
-## Frontend Endpoints (Port 5050)
+## Frontend Endpoints (Port 5000)
 
 ### Direct Browser Access
 ```bash
@@ -343,6 +414,62 @@ make select-knn
 make metrics-svm
 make metrics-knn
 
+---
+
+## 🧪 **Fraud Detection Testing Examples**
+
+### **Enhanced Fraud Detection Test Cases**
+
+```bash
+# HIGH RISK - Starbucks fraud case (8% risk)
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Check if $1170.53 at Starbucks is fraud", "user_id": "alice"}'
+# Response: **Risk Score**: 8.0% **Decision**: HIGH RISK
+
+# HIGH RISK - Unknown merchant (12% risk)  
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Is $50000 at unknown merchant suspicious?", "user_id": "alice"}'
+# Response: **Risk Score**: 12.0% **Decision**: HIGH RISK
+
+# MEDIUM RISK - High Uber cost (4% risk)
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Check if $624.95 at Uber is fraud", "user_id": "alice"}'
+# Response: **Risk Score**: 4.0% **Decision**: REQUIRES REVIEW
+
+# LOW RISK - Normal Amazon purchase (0% risk)
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Check if $25 at Amazon is fraud", "user_id": "alice"}'
+# Response: **Risk Score**: 0.0% **Decision**: LEGITIMATE
+```
+
+### **Test Users with Real Fraud Cases**
+
+```bash
+# Login credentials for testing:
+# alice:Passw0rd! (clean account, no fraud)
+# heidi:Heidi2025 (has 3 fraud cases)
+# bob:Secur3P@ss (mixed activity)
+# frank:LetMeIn1 (some fraud cases)
+
+# View actual fraud cases
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Show my fraud cases", "user_id": "heidi"}'
+# Response: Lists real fraud cases from database
+
+# Get fraud analytics
+curl -X GET http://127.0.0.1:8000/chatbot/user/heidi/fraud-summary
+# Response: Detailed fraud analysis with patterns
+```
+
+---
+
+## 🛠️ **Troubleshooting**
+
 # Run EDA
 make eda
 ```
@@ -360,8 +487,8 @@ kill -9 <PID>
 
 ### Frontend won't start
 ```bash
-# Check if port 5050 is in use
-lsof -i :5050
+# Check if port 5000 is in use
+lsof -i :5000
 # Kill process if needed
 kill -9 <PID>
 ```
@@ -370,6 +497,16 @@ kill -9 <PID>
 ```bash
 # Train the model first
 curl -X POST http://127.0.0.1:8000/train/ann
+```
+
+### Chatbot not detecting fraud
+```bash
+# The system now uses enhanced business rules!
+# Test with known fraud patterns:
+curl -X POST http://127.0.0.1:8000/chatbot/message \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Check if $1000 at Starbucks is fraud", "user_id": "alice"}'
+# Should return HIGH RISK (8%+)
 ```
 
 ### Database "no such table: users"
