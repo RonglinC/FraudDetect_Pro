@@ -38,8 +38,12 @@ DB_PATH = str(Path(__file__).resolve().parents[1] / "users.db")
 @app.on_event("startup")
 def train_models_on_startup():
     """Train or load ANN model at startup"""
-    ml_models.train_algorithm("ann", force_retrain=False)
-    logger.info("Startup: ANN model ready")
+    # Force retrain to fix sklearn version compatibility issues
+    success = ml_models.train_algorithm("ann", force_retrain=True)
+    if success:
+        logger.info("Startup: ANN model ready")
+    else:
+        logger.error("Startup: Failed to load/train ANN model")
 
 # ----------------------------
 # User Authentication

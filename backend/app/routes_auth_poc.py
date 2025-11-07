@@ -6,7 +6,7 @@ from typing import List
 
 from pathlib import Path
 # import your pydantic schemas (adjust import path if necessary)
-from app.schemas import LoginRequest, LoginResponse, AlgorithmsResponse
+from .schemas import LoginRequest, LoginResponse, AlgorithmsResponse
 
 # Resolve users.db relative to the repository structure:
 # this file lives at backend/app/routes_auth_poc.py and the DB is at backend/users.db
